@@ -33,6 +33,7 @@ if __name__ == '__main__':
     # This work needs to be done during postprocessing if not included as a layer in the export.
     # See the following links for more details:
     # https://github.com/ultralytics/yolov5/issues/343#issuecomment-658021043
+    # https://github.com/ultralytics/yolov5/issues/312#issuecomment-655084477
     # https://github.com/ultralytics/yolov5/issues/251#issuecomment-656806624
     detect_layer_export = not opt.include_detect_layer
 
