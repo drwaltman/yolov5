@@ -31,7 +31,9 @@ if __name__ == '__main__':
     # Remove/include Detect() layer by setting export to True/False respectively.
     # The Detect() layer combines the results from multiple output layers into one set of detections. 
     # This work needs to be done during postprocessing if not included as a layer in the export.
-    # See https://github.com/ultralytics/yolov5/issues/343#issuecomment-658021043 for more details.
+    # See the following links for more details:
+    # https://github.com/ultralytics/yolov5/issues/343#issuecomment-658021043
+    # https://github.com/ultralytics/yolov5/issues/251#issuecomment-656806624
     detect_layer_export = not opt.include_detect_layer
 
     # Load PyTorch model
