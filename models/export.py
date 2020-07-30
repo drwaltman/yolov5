@@ -1,7 +1,7 @@
 """Exports a YOLOv5 *.pt model to ONNX and TorchScript formats
 
 Usage:
-    $ export PYTHONPATH="$PWD" && python models/export.py --weights ./weights/yolov5s.pt --img 640 --batch 1
+    $ export PYTHONPATH="$PWD" && python models/export.py --weights ./weights/yolov5s.pt --img-size 640 --batch-size 1 --device cuda --include-detect-layer
 """
 
 import argparse
@@ -11,21 +11,34 @@ from utils import google_utils
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='./yolov5s.pt', help='weights path')
-    parser.add_argument('--img-size', nargs='+', type=int, default=[640, 640], help='image size')
-    parser.add_argument('--batch-size', type=int, default=1, help='batch size')
+    parser.add_argument('--weights', type=str, default='./yolov5s.pt', help='weights path, defaults to ./yolov5s.pt')
+    parser.add_argument('--img-size', nargs='+', type=int, default=[640, 640], help='image size, defaults to [640, 640]')
+    parser.add_argument('--batch-size', type=int, default=1, help='batch size, defaults to 1')
+    parser.add_argument('--device', type=str, default='cuda', help='cuda or cpu, defaults to cuda')
+    parser.add_argument('--include-detect-layer', action='store_true', help='include Detect() layer in exported models')
     opt = parser.parse_args()
     opt.img_size *= 2 if len(opt.img_size) == 1 else 1  # expand
     print(opt)
 
+    # Device
+    map_location = torch.device(opt.device) if opt.device else None
+    if not map_location:
+        map_location = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
     # Input
-    img = torch.zeros((opt.batch_size, 3, *opt.img_size))  # image size(1,3,320,192) iDetection
+    img = torch.zeros((opt.batch_size, 3, *opt.img_size)).to(map_location)  # image size(1,3,320,192) iDetection
+
+    # Remove/include Detect() layer by setting export to True/False respectively.
+    # The Detect() layer combines the results from multiple output layers into one set of detections. 
+    # This work needs to be done during postprocessing if not included as a layer in the export.
+    # See https://github.com/ultralytics/yolov5/issues/343#issuecomment-658021043 for more details.
+    detect_layer_export = not opt.include_detect_layer
 
     # Load PyTorch model
     google_utils.attempt_download(opt.weights)
-    model = torch.load(opt.weights, map_location=torch.device('cpu'))['model'].float()
+    model = torch.load(opt.weights, map_location=map_location)['model'].float()
     model.eval()
-    model.model[-1].export = True  # set Detect() layer export=True
+    model.model[-1].export = detect_layer_export
     y = model(img)  # dry run
 
     # TorchScript export
