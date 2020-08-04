@@ -29,6 +29,10 @@ class Detect(nn.Module):
             x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
 
             if not self.training:  # inference
+                # TracerWarning:
+                # Converting a tensor to a Python boolean might cause the trace to be incorrect. 
+                # We can't record the data flow of Python values, so this value will be treated as a constant in the future. 
+                # This means that the trace might not generalize to other inputs!
                 if self.grid[i].shape[2:4] != x[i].shape[2:4]:
                     self.grid[i] = self._make_grid(nx, ny).to(x[i].device)
 
