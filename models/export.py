@@ -6,8 +6,9 @@ Usage:
 
 import argparse
 
-from models.common import *
-from utils import google_utils
+import torch
+
+from utils.google_utils import attempt_download
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     detect_layer_export = not opt.include_detect_layer
 
     # Load PyTorch model
-    google_utils.attempt_download(opt.weights)
+    attempt_download(opt.weights)
     model = torch.load(opt.weights, map_location=map_location)['model'].float()
     model.eval()
     model.model[-1].export = detect_layer_export
